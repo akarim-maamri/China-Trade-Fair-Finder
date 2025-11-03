@@ -38,8 +38,13 @@ const App: React.FC = () => {
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9V3m0 18a9 9 0 009-9m-9 9a9 9 0 00-9-9" />
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 rounded" viewBox="0 0 90 60">
+                <rect width="90" height="60" fill="#DE2910"/>
+                <path d="M22.5,15 L20.3,21.5 26.8,17.2 18.2,17.2 24.7,21.5" fill="#FFDE00"/>
+                <path d="M37.5,6 L36.9,8.2 38.7,6.6 36.3,6.6 38.1,8.2" fill="#FFDE00" transform="rotate(23.4 37.5 7.5)"/>
+                <path d="M45,15 L44.4,17.2 46.2,15.6 43.8,15.6 45.6,17.2" fill="#FFDE00" transform="rotate(45.8 45 15)"/>
+                <path d="M45,24 L44.4,26.2 46.2,24.6 43.8,24.6 45.6,26.2" fill="#FFDE00" transform="rotate(69.2 45 22.5)"/>
+                <path d="M37.5,30 L36.9,32.2 38.7,30.6 36.3,30.6 38.1,32.2" fill="#FFDE00" transform="rotate(90 37.5 30)"/>
               </svg>
               <h1 className="ml-3 text-2xl font-bold text-gray-900">China Trade Fair Finder</h1>
             </div>
