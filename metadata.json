@@ -1,0 +1,5 @@
+{
+  "name": "China Trade Fair Invitation Finder",
+  "description": "An intelligent tool to automatically search, identify, and extract verified Trade Exhibition (TE) Invitations for trade fairs and expos in China. It organizes data by province, city, date, and category from official sources.",
+  "requestFramePermissions": []
+}
