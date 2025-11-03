@@ -1,19 +1,81 @@
-
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect, lazy, Suspense } from 'react';
 import { SearchForm } from './components/SearchForm';
 import { ResultsDisplay } from './components/ResultsDisplay';
 import { Visualizations } from './components/Visualizations';
 import { fetchExhibitions } from './services/geminiService';
 import type { Exhibition, SearchFilters } from './types';
+import { useLanguage } from './LanguageContext';
+
+const DeveloperInfoModal = lazy(() => import('./components/DeveloperInfoModal'));
+const VisaInfoModal = lazy(() => import('./components/VisaInfoModal'));
+
 
 type View = 'results' | 'visualizations';
+type VisaType = 'L' | 'M' | 'Z';
+
+const PROFILE_IMAGE = 'https://i.ibb.co/b3s1M0N/china-flag-icon.png';
+
+// Simple Error Boundary
+class ErrorBoundary extends React.Component<{ children: React.ReactNode }, { hasError: boolean }> {
+  constructor(props: any) {
+    super(props);
+    this.state = { hasError: false };
+  }
+  static getDerivedStateFromError() {
+    return { hasError: true };
+  }
+  componentDidCatch(error: any, info: any) {
+    console.error('Unhandled error:', error, info);
+  }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="p-6 text-center text-red-600">
+          An unexpected error occurred. Please reload the page.
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
+const getDefaultDateRange = () => {
+    const startDate = new Date();
+    const endDate = new Date();
+    endDate.setMonth(endDate.getMonth() + 3);
+    return {
+      start: startDate.toISOString().split('T')[0],
+      end: endDate.toISOString().split('T')[0],
+    };
+};
 
 const App: React.FC = () => {
-  const [filters, setFilters] = useState<SearchFilters | null>(null);
-  const [results, setResults] = useState<Exhibition[]>([]);
+  const { language, setLanguage, t } = useLanguage();
+  
+  const [filters, setFilters] = useState<SearchFilters>(() => ({
+      province: 'Guangdong',
+      city: 'Guangzhou',
+      category: 'Any',
+      invitation: 'Any',
+      startDate: getDefaultDateRange().start,
+      endDate: getDefaultDateRange().end,
+  }));
+  
+  const [results, setResults] = useState<Exhibition[]>(() => {
+    const cached = localStorage.getItem('lastResults');
+    return cached ? JSON.parse(cached) : [];
+  });
+
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [view, setView] = useState<View>('results');
+  const [isDevOpen, setIsDevOpen] = useState(false);
+  const [selectedVisa, setSelectedVisa] = useState<VisaType | null>(null);
+
+  useEffect(() => {
+    document.documentElement.lang = language;
+    document.documentElement.dir = language === 'ar' ? 'rtl' : 'ltr';
+  }, [language]);
 
   const handleSearch = useCallback(async (searchFilters: SearchFilters) => {
     setIsLoading(true);
@@ -23,77 +85,127 @@ const App: React.FC = () => {
     try {
       const data = await fetchExhibitions(searchFilters);
       setResults(data);
+      localStorage.setItem('lastResults', JSON.stringify(data));
     } catch (err) {
-      setError('Failed to fetch exhibition data. Please check your API key and try again.');
+      setError(t('errorMessage'));
       console.error(err);
       setResults([]);
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [t]);
+
+  const handleClearCache = () => {
+    localStorage.removeItem('lastResults');
+    setResults([]);
+  };
+
+  const handleVisaSelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const type = e.target.value as VisaType;
+    setSelectedVisa(type);
+    e.target.value = ''; // Reset dropdown after selection to allow re-selection
+  };
+
 
   return (
-    <div className="min-h-screen bg-gray-50 text-gray-800">
-      <header className="bg-white shadow-md sticky top-0 z-20">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
+    <ErrorBoundary>
+      <div className="min-h-screen bg-transparent text-gray-900 transition-colors">
+        <header className="bg-white/80 sticky top-0 backdrop-blur-md z-30 shadow-sm">
+          <div className="container mx-auto px-4 py-3 flex items-center justify-between">
             <div className="flex items-center">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 rounded" viewBox="0 0 90 60">
-                <rect width="90" height="60" fill="#DE2910"/>
-                <path d="M22.5,15 L20.3,21.5 26.8,17.2 18.2,17.2 24.7,21.5" fill="#FFDE00"/>
-                <path d="M37.5,6 L36.9,8.2 38.7,6.6 36.3,6.6 38.1,8.2" fill="#FFDE00" transform="rotate(23.4 37.5 7.5)"/>
-                <path d="M45,15 L44.4,17.2 46.2,15.6 43.8,15.6 45.6,17.2" fill="#FFDE00" transform="rotate(45.8 45 15)"/>
-                <path d="M45,24 L44.4,26.2 46.2,24.6 43.8,24.6 45.6,26.2" fill="#FFDE00" transform="rotate(69.2 45 22.5)"/>
-                <path d="M37.5,30 L36.9,32.2 38.7,30.6 36.3,30.6 38.1,32.2" fill="#FFDE00" transform="rotate(90 37.5 30)"/>
-              </svg>
-              <h1 className="ml-3 text-2xl font-bold text-gray-900">China Trade Fair Finder</h1>
+              <div className="h-10 w-10 rounded-full overflow-hidden me-3 shadow shrink-0">
+                <img src={PROFILE_IMAGE} alt="logo" className="object-cover w-full h-full" />
+              </div>
+              <div>
+                <h1 className="text-xl font-bold">{t('appTitle')}</h1>
+                <p className="text-xs text-gray-600">{t('appSubtitle')}</p>
+              </div>
+            </div>
+
+            <div className="flex items-center space-x-3">
+              <select
+                  value=""
+                  onChange={handleVisaSelect}
+                  className="rounded border px-2 py-1 bg-white/60 hover:bg-gray-100 cursor-pointer"
+                  aria-label={t('visaInfo')}
+              >
+                  <option value="" disabled hidden>{t('selectVisaType')}</option>
+                  <option value="L">{t('visaL')}</option>
+                  <option value="M">{t('visaM')}</option>
+                  <option value="Z">{t('visaZ')}</option>
+              </select>
+              
+              <select
+                  value={language}
+                  onChange={(e) => setLanguage(e.target.value as 'en' | 'ar')}
+                  className="rounded border px-2 py-1 bg-white/60"
+                  aria-label={t('language')}
+              >
+                  <option value="en">{t('english')}</option>
+                  <option value="ar">{t('arabic')}</option>
+              </select>
+              
+               <button onClick={() => setIsDevOpen(true)} title={t('aboutDeveloper')} className="p-2 rounded-full animate-pulse-blue relative flex items-center justify-center">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+               </button>
             </div>
           </div>
-        </div>
-      </header>
-      
-      <main className="container mx-auto p-4 sm:p-6 lg:p-8">
-        <div className="lg:grid lg:grid-cols-12 lg:gap-8">
-          <aside className="lg:col-span-3 xl:col-span-3">
-            <div className="sticky top-20">
-              <SearchForm onSearch={handleSearch} isLoading={isLoading} />
-            </div>
+        </header>
+
+        <main className="container mx-auto px-4 py-6 grid lg:grid-cols-12 gap-8">
+          <aside className="lg:col-span-3">
+             <div className="sticky top-20">
+                <SearchForm onSearch={handleSearch} isLoading={isLoading} initialFilters={filters} />
+                <div className="mt-4 text-sm text-gray-100 bg-black/20 p-3 rounded-lg text-start">
+                    <p><strong>{t('tipTitle')}:</strong> {t('tipMessage')}</p>
+                </div>
+             </div>
           </aside>
 
-          <div className="lg:col-span-9 xl:col-span-9 mt-6 lg:mt-0">
-            {filters && (
-              <div className="bg-white p-4 rounded-lg shadow mb-6">
-                <div className="flex items-center justify-between">
-                    <h2 className="text-xl font-semibold text-gray-800">Exhibition Directory</h2>
-                    {results.length > 0 && (
-                        <div className="flex space-x-1 bg-gray-200 p-1 rounded-lg">
-                        <button
-                            onClick={() => setView('results')}
-                            className={`px-3 py-1 text-sm font-medium rounded-md transition-colors ${view === 'results' ? 'bg-white text-blue-600 shadow' : 'text-gray-600 hover:bg-gray-300'}`}
-                        >
-                            Results
-                        </button>
-                        <button
-                            onClick={() => setView('visualizations')}
-                            className={`px-3 py-1 text-sm font-medium rounded-md transition-colors ${view === 'visualizations' ? 'bg-white text-blue-600 shadow' : 'text-gray-600 hover:bg-gray-300'}`}
-                        >
-                            Visualizations
-                        </button>
-                        </div>
-                    )}
+          <section className="lg:col-span-9">
+            <div className="mb-4 flex items-center justify-between">
+              <h2 className="text-2xl font-semibold text-white">{t('exhibitionDirectory')}</h2>
+              {results.length > 0 && (
+                <div className="flex items-center space-x-2 bg-gray-200/50 p-1 rounded-lg">
+                  <button onClick={() => setView('results')} className={`px-3 py-1 text-sm font-medium rounded-md transition-colors ${view==='results' ? 'bg-white text-blue-600 shadow' : 'text-gray-100 hover:bg-white/20'}`}>{t('results')}</button>
+                  <button onClick={() => setView('visualizations')} className={`px-3 py-1 text-sm font-medium rounded-md transition-colors ${view==='visualizations' ? 'bg-white text-blue-600 shadow' : 'text-gray-100 hover:bg-white/20'}`}>{t('visualizations')}</button>
                 </div>
-              </div>
-            )}
-            
-            {view === 'results' ? (
-              <ResultsDisplay results={results} isLoading={isLoading} error={error} hasSearched={!!filters} />
-            ) : (
-              <Visualizations data={results} />
-            )}
+              )}
+            </div>
+
+            <div>
+              {view === 'results' ? (
+                <ResultsDisplay 
+                  results={results} 
+                  isLoading={isLoading} 
+                  error={error} 
+                  hasSearched={results.length > 0 || isLoading || !!error}
+                  onClearCache={handleClearCache}
+                />
+              ) : (
+                <Suspense fallback={<div className="p-6 text-center">{t('loading')}...</div>}>
+                  <Visualizations data={results} />
+                </Suspense>
+              )}
+            </div>
+          </section>
+        </main>
+
+        <footer className="bg-white/80 py-4 mt-8">
+          <div className="container mx-auto px-4 text-center text-sm text-gray-700">
+            <p className="font-semibold">{t('devName')}</p>
+            <p>© 2025 All Rights Reserved — Developed with passion ❤️ in Djelfa — Version 1.0.0</p>
           </div>
-        </div>
-      </main>
-    </div>
+        </footer>
+
+        <Suspense fallback={null}>
+          <DeveloperInfoModal isOpen={isDevOpen} onClose={() => setIsDevOpen(false)} />
+          <VisaInfoModal visaType={selectedVisa} onClose={() => setSelectedVisa(null)} />
+        </Suspense>
+      </div>
+    </ErrorBoundary>
   );
 };
 

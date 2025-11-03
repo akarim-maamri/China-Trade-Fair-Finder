@@ -16,10 +16,7 @@ export const CITIES = [
 
 export const CATEGORIES = [
     "Any", "General Trade", "Electronics", "Textiles & Fashion",
-    "Machinery & Industrial", "Construction & Building Materials",
-    "Food & Beverage", "Furniture & Home Decor", "Automotive & Parts",
-    "Health & Medical", "Beauty & Cosmetics", "Agriculture",
-    "Technology & AI", "Tourism & Hospitality", "Energy & Environment"
+    "Machinery & Industrial", "Food & Beverage", "Furniture & Home Decor", "Technology & AI"
 ];
 
-export const INVITATION_TYPES = ["Any", "Free Invitation", "Paid Invitation"];
+export const INVITATION_TYPES = ["Any", "Free", "Paid"];

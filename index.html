@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -7,6 +6,24 @@
     <title>China Trade Fair Invitation Finder</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
+      body {
+        position: relative;
+        background-image: url('https://s2.best-wallpaper.net/wallpaper/2880x1800/1812/Beautiful-Guangzhou-Canton-Tower-bridge-river-skyscrapers-lights-dusk_2880x1800.jpg');
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        background-attachment: fixed;
+      }
+      body::before {
+        content: '';
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: rgba(0, 0, 0, 0.4);
+        z-index: -1;
+      }
       /* Custom scrollbar for better aesthetics */
       ::-webkit-scrollbar {
         width: 8px;
@@ -22,6 +39,22 @@
       ::-webkit-scrollbar-thumb:hover {
         background: #555;
       }
+      /* Animation for the new developer info icon */
+      @keyframes pulse-blue {
+        0% {
+          box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7);
+        }
+        70% {
+          box-shadow: 0 0 0 10px rgba(59, 130, 246, 0);
+        }
+        100% {
+          box-shadow: 0 0 0 0 rgba(59, 130, 246, 0);
+        }
+      }
+      .animate-pulse-blue {
+        animation: pulse-blue 2s infinite;
+        border-radius: 50%;
+      }
     </style>
   <script type="importmap">
 {
@@ -35,7 +68,7 @@
 }
 </script>
 </head>
-  <body class="bg-gray-100 antialiased">
+  <body class="antialiased">
     <div id="root"></div>
     <script type="module" src="/index.tsx"></script>
   </body>

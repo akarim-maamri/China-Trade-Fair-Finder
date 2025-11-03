@@ -1,7 +1,7 @@
-
-import React from 'react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell, Sector, PieLabelRenderProps } from 'recharts';
+import React, { useContext } from 'react';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell, Sector } from 'recharts';
 import type { Exhibition } from '../types';
+import { useLanguage } from '../LanguageContext';
 
 interface VisualizationsProps {
   data: Exhibition[];
@@ -22,7 +22,7 @@ const processProvinceData = (data: Exhibition[]) => {
 
 const processInvitationTypeData = (data: Exhibition[]) => {
   const counts = data.reduce((acc, curr) => {
-    const type = curr.invitation_type;
+    const type = curr.invitationType;
     acc[type] = (acc[type] || 0) + 1;
     return acc;
   }, {} as Record<string, number>);
@@ -69,7 +69,7 @@ const renderActiveShape = (props: any) => {
       />
       <path d={`M${sx},${sy}L${mx},${my}L${ex},${ey}`} stroke={fill} fill="none" />
       <circle cx={ex} cy={ey} r={2} fill={fill} stroke="none" />
-      <text x={ex + (cos >= 0 ? 1 : -1) * 12} y={ey} textAnchor={textAnchor} fill="#333">{`${value} Events`}</text>
+      <text x={ex + (cos >= 0 ? 1 : -1) * 12} y={ey} textAnchor={textAnchor} fill={'#333'}>{`${value} Events`}</text>
       <text x={ex + (cos >= 0 ? 1 : -1) * 12} y={ey} dy={18} textAnchor={textAnchor} fill="#999">
         {`(Rate ${(percent * 100).toFixed(2)}%)`}
       </text>
@@ -79,9 +79,11 @@ const renderActiveShape = (props: any) => {
 
 
 export const Visualizations: React.FC<VisualizationsProps> = ({ data }) => {
+  const { t } = useLanguage();
   const [activeIndex, setActiveIndex] = React.useState(0);
   const provinceData = processProvinceData(data);
   const invitationTypeData = processInvitationTypeData(data);
+  const tickColor = '#4A5568';
 
   if (data.length === 0) {
     return (
@@ -90,8 +92,8 @@ export const Visualizations: React.FC<VisualizationsProps> = ({ data }) => {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z" />
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z" />
             </svg>
-            <h3 className="mt-2 text-lg font-medium text-gray-900">Not Enough Data</h3>
-            <p className="mt-1 text-sm text-gray-500">Perform a search to see data visualizations.</p>
+            <h3 className="mt-2 text-lg font-medium text-gray-900">{t('notEnoughDataTitle')}</h3>
+            <p className="mt-1 text-sm text-gray-500">{t('notEnoughDataMessage')}</p>
         </div>
     )
   }
@@ -103,21 +105,27 @@ export const Visualizations: React.FC<VisualizationsProps> = ({ data }) => {
   return (
     <div className="space-y-8">
       <div className="bg-white p-6 rounded-lg shadow">
-        <h3 className="text-lg font-semibold mb-4 text-gray-800">Exhibitions by Province</h3>
+        <h3 className="text-lg font-semibold mb-4 text-gray-800 text-start">{t('exhibitionsByProvince')}</h3>
         <ResponsiveContainer width="100%" height={300}>
           <BarChart data={provinceData} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="name" />
-            <YAxis />
-            <Tooltip />
-            <Legend />
+            <CartesianGrid strokeDasharray="3 3" stroke={'#E2E8F0'} />
+            <XAxis dataKey="name" tick={{ fill: tickColor }} />
+            <YAxis tick={{ fill: tickColor }}/>
+            <Tooltip
+              contentStyle={{
+                backgroundColor: '#ffffff',
+                borderColor: '#cccccc',
+                color: '#000000'
+              }}
+            />
+            <Legend wrapperStyle={{ color: tickColor }} />
             <Bar dataKey="exhibitions" fill="#3b82f6" />
           </BarChart>
         </ResponsiveContainer>
       </div>
 
       <div className="bg-white p-6 rounded-lg shadow">
-        <h3 className="text-lg font-semibold mb-4 text-gray-800">Invitation Types</h3>
+        <h3 className="text-lg font-semibold mb-4 text-gray-800 text-start">{t('invitationTypes')}</h3>
         <ResponsiveContainer width="100%" height={300}>
           <PieChart>
             <Pie
@@ -136,7 +144,7 @@ export const Visualizations: React.FC<VisualizationsProps> = ({ data }) => {
                 <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
               ))}
             </Pie>
-            <Legend />
+            <Legend wrapperStyle={{ color: tickColor }} />
           </PieChart>
         </ResponsiveContainer>
       </div>

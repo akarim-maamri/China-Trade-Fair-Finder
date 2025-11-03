@@ -3,26 +3,21 @@ export interface SearchFilters {
   province: string;
   city: string;
   category: string;
-  invitationType: string;
+  invitation: 'Free' | 'Paid' | 'Any';
   startDate: string;
   endDate: string;
 }
 
 export interface Exhibition {
+  id: string;
+  name: string;
   province: string;
   city: string;
-  exhibition_name: string;
   category: string;
-  start_date: string;
-  end_date: string;
+  startDate: string; // YYYY-MM-DD
+  endDate: string;   // YYYY-MM-DD
   venue: string;
   organizer: string;
-  official_website: string;
-  invitation_type: string;
-  application_link: string;
-  contact_email: string;
-  contact_phone: string;
-  last_updated: string;
-  verification_status: boolean;
-  consular_acceptance: boolean;
+  invitationType: 'Free' | 'Paid';
+  website: string;
 }
